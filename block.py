@@ -2,6 +2,7 @@ import json
 import os
 import hashlib
 import database
+import time
 
 blockchain_dir = os.curdir + '/blocks/'
 
@@ -24,11 +25,14 @@ def get_hash_db(session):
 
 
 def write_block(session, name, amount, to_whom, prev_hash=''):
+    start = time.time()
     prev_index = 0
     if database.is_database_empty(session) == False:
         prev_hash, prev_index = get_hash_db(session)
     database.add_block(session, name, str(amount), to_whom, prev_hash, prev_index)
-
+    end = time.time()
+    time_to_add = end - start
+    database.add_time(session, name, time_to_add)
 
 
 # def write_block(name, amount, to_whom, prev_hash=''):

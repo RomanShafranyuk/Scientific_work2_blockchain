@@ -2,8 +2,9 @@ import datetime
 from sqlalchemy import create_engine, DateTime, delete
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.sql.functions import count
+from sqlalchemy.sql.functions import sum as sum_string
 from sqlalchemy.sql.expression import desc
 import random
 
@@ -47,6 +48,23 @@ def get_last_block(db_session):
 def is_database_empty(db_session):
     return db_session.query(count(Block.number_id)).all()[0][0] == 0
 
+def get_block_id(db_session, name):
+    return db_session.query(Block.number_id).where(Block.who == name).all()[0][0]
+
+
+def get_average_time():
+    db_session = create_session()
+    sum = db_session.query(sum_string(Timer.time)).all()[0][0]
+    count_blocks = db_session.query(count(Timer.time)).all()[0][0]
+    return sum / count_blocks
+
+
+def add_time(db_session, name, time):
+    n_id = get_block_id(db_session, name)
+    t = Timer(n_id, time)
+    db_session.add(t)
+    db_session.commit()
+
 
 class Block(Base):
     __tablename__ = 'blocks'
@@ -63,3 +81,19 @@ class Block(Base):
         self.to_whom = name2
         self.block_hash = hash_
         self.prev_index = prev_index
+
+class Timer(Base):
+    __tablename__ = 'timer'
+    n_id = Column(Integer, ForeignKey('blocks.number_id'), primary_key=True)
+    number = relationship('Block')
+    time = Column(Float)
+
+    def __init__(self, number_id, time):
+        self.n_id = number_id
+        self.time = time
+
+
+
+session = create_session()
+init_db(session)
+
