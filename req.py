@@ -9,7 +9,7 @@ MINIMAL_SUM = 100000
 MAX_SUM = 10000000
 KEYS = ["lender", "amount", "borrower"]
 def request_to_blocks(data):
-    requests.post("http://192.168.43.67:5000", data)
+    requests.post("http://25.22.250.163:5000", data)
 
 
 

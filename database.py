@@ -9,34 +9,44 @@ import random
 
 engine = create_engine('sqlite:///test.db?check_same_thread=False')
 
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
+
+def create_session():
+    return scoped_session(sessionmaker(autocommit=False,
+                                       autoflush=False,
+                                       bind=engine))
+
+
+# db_session =scoped_session(sessionmaker(autocommit=False,
+#                                        autoflush=False,
+#                                        bind=engine))
 Base = declarative_base()
-Base.query = db_session.query_property()
 
 
-def init_db():
+
+def init_db(db_session):
+    Base.query = db_session.query_property()
     Base.metadata.create_all(bind=engine)
 
 
-def add_block(name1: str, amount: int, name2: str, hash_: str, prev_index):
+def add_block(db_session, name1: str, amount: int, name2: str, hash_: str, prev_index):
+    
     b = Block(name1, amount, name2, hash_, prev_index)
     check_list = []
     while len(check_list) == 0:
         db_session.add(b)
-        db_session.commit()
+        flag = db_session.commit()
+        print(flag)
         check_list += db_session.query(Block.number_id).select_from(Block).where(
             Block.amount == amount).where(Block.who == name1).where(Block.to_whom == name2).where(Block.block_hash == hash_).all()
 
-def get_block_data():
+
+def get_last_block(db_session):
     return db_session.query(Block.who, Block.amount, Block.to_whom, Block.block_hash, Block.number_id).select_from(Block).order_by(desc(Block.number_id)).limit(1).all()[0]
 
 
-    
-
-def is_database_exist():
+def is_database_empty(db_session):
     return db_session.query(count(Block.number_id)).all()[0][0] == 0
+
 
 class Block(Base):
     __tablename__ = 'blocks'
@@ -53,7 +63,3 @@ class Block(Base):
         self.to_whom = name2
         self.block_hash = hash_
         self.prev_index = prev_index
-
-
-
-
