@@ -56,14 +56,17 @@ def get_average_time():
     db_session = create_session()
     sum = db_session.query(sum_string(Timer.time)).all()[0][0]
     count_blocks = db_session.query(count(Timer.time)).all()[0][0]
-    return sum / count_blocks
+    db_session.close()
+    return count_blocks, sum / count_blocks
 
 
-def add_time(db_session, name, time):
-    n_id = get_block_id(db_session, name)
+def add_time(time):
+    db_session = create_session()
+    n_id = get_block_id(db_session)
     t = Timer(n_id, time)
     db_session.add(t)
     db_session.commit()
+    db_session.close()
 
 
 class Block(Base):
@@ -84,12 +87,10 @@ class Block(Base):
 
 class Timer(Base):
     __tablename__ = 'timer'
-    n_id = Column(Integer, ForeignKey('blocks.number_id'), primary_key=True)
-    number = relationship('Block')
+    n_id = Column(Integer, primary_key=True)
     time = Column(Float)
 
-    def __init__(self, number_id, time):
-        self.n_id = number_id
+    def __init__(self, time):
         self.time = time
 
 

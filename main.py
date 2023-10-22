@@ -3,6 +3,7 @@ from flask import render_template, redirect, url_for
 from flask import request
 from block import *
 import database
+import block
 
 
 app = Flask(__name__)
@@ -15,17 +16,17 @@ def index():
         lender = request.form['lender']
         amount = request.form['amount']
         borrower = request.form['borrower']
-        write_block(session, name=lender, amount=amount, to_whom=borrower)
+        time_to_add = block.write_block(session, name=lender, amount=amount, to_whom=borrower)
         session.close()
-        return {}
+        return {"time":time_to_add}
           
     return render_template('index.html')
 
 
-@app.route('/check', methods=['GET'])
-def check():
-    # results = check_integrity()
-    return render_template('index.html', results=True)
+# @app.route('/check', methods=['GET'])
+# def check():
+#     get_average_time()
+#     return render_template('index.html')
 
 if __name__ == '__main__':
     session = database.create_session()

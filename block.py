@@ -32,8 +32,13 @@ def write_block(session, name, amount, to_whom, prev_hash=''):
     database.add_block(session, name, str(amount), to_whom, prev_hash, prev_index)
     end = time.time()
     time_to_add = end - start
-    database.add_time(session, name, time_to_add)
+    return time_to_add
 
+def get_average_time(count_blocks):
+    _, time_avg = database.get_average_time()
+
+    with open('time.txt', "a") as f:
+        f.write(str(count_blocks) + ":" + str(time_avg)+'\n')
 
 # def write_block(name, amount, to_whom, prev_hash=''):
 #     files = get_files()
