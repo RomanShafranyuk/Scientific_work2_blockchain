@@ -16,9 +16,9 @@ def index():
         lender = request.form['lender']
         amount = request.form['amount']
         borrower = request.form['borrower']
-        time_to_add = block.write_block(session, name=lender, amount=amount, to_whom=borrower)
+        block.write_block(session, name=lender, amount=amount, to_whom=borrower)
         session.close()
-        return {"time":time_to_add}
+        return {}
           
     return render_template('index.html')
 

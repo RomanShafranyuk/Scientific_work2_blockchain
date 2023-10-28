@@ -1,4 +1,3 @@
-import datetime
 from sqlalchemy import create_engine, DateTime, delete
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,7 +7,7 @@ from sqlalchemy.sql.functions import sum as sum_string
 from sqlalchemy.sql.expression import desc
 import random
 
-engine = create_engine('sqlite:///test.db?check_same_thread=False')
+engine = create_engine('postgresql+psycopg2://postgres:Roman100102_sh@localhost:5432/blockchain')
 
 
 def create_session():
@@ -35,8 +34,7 @@ def add_block(db_session, name1: str, amount: int, name2: str, hash_: str, prev_
     check_list = []
     while len(check_list) == 0:
         db_session.add(b)
-        flag = db_session.commit()
-        print(flag)
+        db_session.commit()
         check_list += db_session.query(Block.number_id).select_from(Block).where(
             Block.amount == amount).where(Block.who == name1).where(Block.to_whom == name2).where(Block.block_hash == hash_).all()
 
@@ -52,17 +50,18 @@ def get_block_id(db_session, name):
     return db_session.query(Block.number_id).where(Block.who == name).all()[0][0]
 
 
-def get_average_time():
+def get_average_time(count_blocks: int):
     db_session = create_session()
-    sum = db_session.query(sum_string(Timer.time)).all()[0][0]
-    count_blocks = db_session.query(count(Timer.time)).all()[0][0]
+    last_id = db_session.query(Timer.n_id).select_from(Timer).order_by(desc(Timer.n_id)).limit(1).all()[0][0]
+    sum = db_session.query(sum_string(Timer.time)).where(Timer.n_id >= last_id - count_blocks + 1).all()[0][0]
+    # count_blocks = db_session.query(count(Timer.time)).all()[0][0]
     db_session.close()
     return count_blocks, sum / count_blocks
 
 
-def add_time(time):
+def add_time(name, time):
     db_session = create_session()
-    n_id = get_block_id(db_session)
+    n_id = get_block_id(db_session, name)
     t = Timer(n_id, time)
     db_session.add(t)
     db_session.commit()
@@ -90,11 +89,13 @@ class Timer(Base):
     n_id = Column(Integer, primary_key=True)
     time = Column(Float)
 
-    def __init__(self, time):
+    def __init__(self, n_id, time):
+        self.n_id = n_id
         self.time = time
 
 
 
-session = create_session()
-init_db(session)
-
+# session = create_session()
+# init_db(session)
+# print(get_average_time(2000))
+# add_block(session, "Tema", 5, "Leha", "1", 0)
