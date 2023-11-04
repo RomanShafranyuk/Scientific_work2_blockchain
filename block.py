@@ -31,10 +31,8 @@ def get_hash_db(session):
 
 
 def write_block(session, name, amount, to_whom, prev_hash=''):
-    #!!!!!!!!
     prev_hash = ''
     prev_index = 0
-    # start = time.time()
 
     if database.is_database_empty(session) == False:
         data_prev_block, prev_index = database.get_last_block(session)
